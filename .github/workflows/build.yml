@@ -32,6 +32,11 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y yasm nasm make
 
+      - name: Setup Gradle Properties
+        run: |
+          echo "android.ndk.suppressMinSdkVersionError=21" >> gradle.properties
+          echo "org.gradle.jvmargs=-Xmx4096m -XX:MaxMetaspaceSize=512m" >> gradle.properties
+
       - name: Setup local.properties
         run: |
           echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
@@ -64,8 +69,6 @@ jobs:
           export ANDROID_NDK_VERSION_LEGACY="23.2.8568313"
           
           # Ensure NDK root is correctly pointed
-          # nttld/setup-ndk sets ANDROID_NDK_ROOT, but we need it to match the structure expected by scripts
-          # The scripts expect $ANDROID_SDK_ROOT/ndk/$ANDROID_NDK_VERSION_PRIMARY
           mkdir -p $ANDROID_SDK_ROOT/ndk
           if [ ! -d "$ANDROID_SDK_ROOT/ndk/$ANDROID_NDK_VERSION_PRIMARY" ]; then
             ln -s $ANDROID_NDK_ROOT $ANDROID_SDK_ROOT/ndk/$ANDROID_NDK_VERSION_PRIMARY
