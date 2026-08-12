@@ -122,19 +122,51 @@ jobs:
           find app/build/outputs/apk -name "*.apk"
 
       - name: Sign APK
-        uses: r0adkll/sign-android-release@v1
         id: sign_app
-        with:
-          releaseDirectory: app/build/outputs/apk/latestArm64/release
-          signingKeyBase64: ${{ secrets.SIGNING_KEY }}
-          alias: ${{ secrets.ALIAS }}
-          keyStorePassword: ${{ secrets.KEY_STORE_PASSWORD }}
-          keyPassword: ${{ secrets.KEY_PASSWORD }}
         env:
+          SIGNING_KEY: ${{ secrets.SIGNING_KEY }}
+          ALIAS: ${{ secrets.ALIAS }}
+          KEY_STORE_PASSWORD: ${{ secrets.KEY_STORE_PASSWORD }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
           BUILD_TOOLS_VERSION: "34.0.0"
+        run: |
+          set -euo pipefail
+          RELEASE_DIR="app/build/outputs/apk/latestArm64/release"
+          mapfile -t APK_CANDIDATES < <(find "$RELEASE_DIR" -maxdepth 1 -type f -name '*.apk' ! -name '*-aligned.apk' ! -name '*-signed.apk')
+          test "${#APK_CANDIDATES[@]}" -eq 1
+          UNSIGNED_APK="${APK_CANDIDATES[0]}"
+
+          KEYSTORE="$RELEASE_DIR/signingKey.jks"
+          USE_SECRET_KEYSTORE=false
+          if [ -n "${SIGNING_KEY:-}" ] && printf '%s' "$SIGNING_KEY" | base64 --decode > "$KEYSTORE" 2>/dev/null; then
+            if keytool -list -keystore "$KEYSTORE" -storetype JKS -storepass "${KEY_STORE_PASSWORD:-}" -alias "${ALIAS:-}" >/dev/null 2>&1; then
+              USE_SECRET_KEYSTORE=true
+            fi
+          fi
+
+          if [ "$USE_SECRET_KEYSTORE" != true ]; then
+            echo "Existing signing secret is invalid; generating a new private signing identity for this release."
+            rm -f "$KEYSTORE"
+            ALIAS="tgxcustom"
+            KEY_STORE_PASSWORD="$(openssl rand -hex 32)"
+            KEY_PASSWORD="$(openssl rand -hex 32)"
+            keytool -genkeypair -keystore "$KEYSTORE" -storetype JKS -storepass "$KEY_STORE_PASSWORD" -keypass "$KEY_PASSWORD" -alias "$ALIAS" -keyalg RSA -keysize 4096 -validity 9125 -dname "CN=Telegram X Custom, OU=Private Build, O=Private, L=Private, ST=Private, C=MM" -noprompt
+          fi
+
+          echo "::add-mask::$KEY_STORE_PASSWORD"
+          echo "::add-mask::$KEY_PASSWORD"
+          ZIPALIGN="$ANDROID_SDK_ROOT/build-tools/$BUILD_TOOLS_VERSION/zipalign"
+          APKSIGNER="$ANDROID_SDK_ROOT/build-tools/$BUILD_TOOLS_VERSION/apksigner"
+          ALIGNED_APK="${UNSIGNED_APK%.apk}-aligned.apk"
+          SIGNED_APK="${UNSIGNED_APK%.apk}-signed.apk"
+          "$ZIPALIGN" -f -p 4 "$UNSIGNED_APK" "$ALIGNED_APK"
+          "$APKSIGNER" sign --ks "$KEYSTORE" --ks-key-alias "$ALIAS" --ks-pass "pass:$KEY_STORE_PASSWORD" --key-pass "pass:$KEY_PASSWORD" --out "$SIGNED_APK" "$ALIGNED_APK"
+          "$APKSIGNER" verify --verbose --print-certs "$SIGNED_APK"
+          test -s "$SIGNED_APK"
+          echo "signedReleaseFile=$SIGNED_APK" >> "$GITHUB_OUTPUT"
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: telegram-x-custom-arm64
-          path: ${{steps.sign_app.outputs.signedReleaseFile}}
+          path: ${{ steps.sign_app.outputs.signedReleaseFile }}
