@@ -182,20 +182,17 @@ add_library(${NATIVE_LIB} SHARED
   gif.cpp
   views.c
 
-  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/libraries/decoder_opus/src/main/jni/opus_jni.cc"
-  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/libraries/decoder_flac/src/main/jni/flac_jni.cc"
-  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/libraries/decoder_flac/src/main/jni/flac_parser.cc"
-  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/libraries/decoder_ffmpeg/src/main/jni/ffmpeg_jni.cc"
-  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/libraries/decoder_vp9/src/main/jni/vpx_jni.cc"
+  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/opus_jni.cc"
+  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/flac_jni.cc"
+  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/flac_parser.cc"
+  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/ffmpeg_jni.cc"
+  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/vpx_jni.cc"
 
   bridge.cpp
 )
 target_include_directories(${NATIVE_LIB} PRIVATE
   "${THIRDPARTY_DIR}/telegram_intro"
-  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/libraries/decoder_opus/src/main/jni"
-  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/libraries/decoder_flac/src/main/jni"
-  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/libraries/decoder_ffmpeg/src/main/jni"
-  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/libraries/decoder_vp9/src/main/jni"
+  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}"
 
   "${THIRDPARTY_DIR}"
   .

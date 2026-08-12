@@ -260,7 +260,7 @@ android {
           "-finline-functions"
         )
         externalNativeBuild.cmake {
-          targets += arrayOf("tgxjni", "tgcallsjni")
+          targets += arrayOf("tgxjni")
           arguments(
             "-DANDROID_PLATFORM=android-${selectedMinSdk}",
             "-DTGX_FLAVOR=${variant.flavor}",
