@@ -55,6 +55,15 @@ jobs:
           echo "app.experimental=true" >> local.properties
           echo "app.disable_signing=true" >> local.properties
 
+      - name: Patch rlottie for arm64-v8a stability
+        run: |
+          # Disable problematic NEON assembly in BuildRlottie.cmake
+          sed -i 's/"${RLOTTIE_DIR}\/src\/vector\/vdrawhelper_neon.cpp"//g' app/jni/BuildRlottie.cmake
+          sed -i '/if (${ANDROID_ABI} STREQUAL "armeabi-v7a")/,/endif()/c\target_compile_definitions(rlottie PRIVATE LOTTIE_NO_NEON)' app/jni/BuildRlottie.cmake
+          
+          # Wrap NEON calls in vdrawhelper.cpp
+          sed -i 's/#if defined(__ARM_NEON__) || defined(__ARM64_NEON__)/#if (defined(__ARM_NEON__) || defined(__ARM64_NEON__)) \&\& !defined(LOTTIE_NO_NEON)/g' app/jni/third_party/rlottie/src/vector/vdrawhelper.cpp
+
       - name: Prepare Native Libraries
         env:
           TERM: xterm
@@ -73,9 +82,7 @@ jobs:
           export FLAVORS="latest"
           
           # Get actual NDK version from the installed directory
-          # nttld/setup-ndk sets ANDROID_NDK_ROOT
           NDK_ACTUAL_VERSION=$(basename $ANDROID_NDK_ROOT)
-          echo "Actual NDK Version: $NDK_ACTUAL_VERSION"
           
           # Update version.properties to match the installed NDK
           sed -i "s/version.ndk_primary=.*/version.ndk_primary=$NDK_ACTUAL_VERSION/" version.properties
