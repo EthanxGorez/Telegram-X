@@ -55,14 +55,15 @@ jobs:
           echo "app.experimental=true" >> local.properties
           echo "app.disable_signing=true" >> local.properties
 
-      - name: Patch rlottie for arm64-v8a stability
+      - name: Patch Source Code for Stability
         run: |
-          # Disable problematic NEON assembly in BuildRlottie.cmake
+          # 1. Patch rlottie for arm64-v8a stability (Disable problematic NEON assembly)
           sed -i 's/"${RLOTTIE_DIR}\/src\/vector\/vdrawhelper_neon.cpp"//g' app/jni/BuildRlottie.cmake
           sed -i '/if (${ANDROID_ABI} STREQUAL "armeabi-v7a")/,/endif()/c\target_compile_definitions(rlottie PRIVATE LOTTIE_NO_NEON)' app/jni/BuildRlottie.cmake
-          
-          # Wrap NEON calls in vdrawhelper.cpp
           sed -i 's/#if defined(__ARM_NEON__) || defined(__ARM64_NEON__)/#if (defined(__ARM_NEON__) || defined(__ARM64_NEON__)) \&\& !defined(LOTTIE_NO_NEON)/g' app/jni/third_party/rlottie/src/vector/vdrawhelper.cpp
+          
+          # 2. Fix jni.c (Remove missing androidx-media/jni.h include)
+          sed -i 's/#include <androidx-media\/jni.h>//g' app/jni/jni.c
 
       - name: Prepare Native Libraries
         env:
