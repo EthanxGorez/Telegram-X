@@ -62,8 +62,14 @@ jobs:
           sed -i '/if (${ANDROID_ABI} STREQUAL "armeabi-v7a")/,/endif()/c\target_compile_definitions(rlottie PRIVATE LOTTIE_NO_NEON)' app/jni/BuildRlottie.cmake
           sed -i 's/#if defined(__ARM_NEON__) || defined(__ARM64_NEON__)/#if (defined(__ARM_NEON__) || defined(__ARM64_NEON__)) \&\& !defined(LOTTIE_NO_NEON)/g' app/jni/third_party/rlottie/src/vector/vdrawhelper.cpp
           
-          # 2. Fix jni.c (Remove missing androidx-media/jni.h include)
+          # 2. Fix jni.c (Remove missing include, add declarations, and fix calls)
           sed -i 's/#include <androidx-media\/jni.h>//g' app/jni/jni.c
+          # Add declarations after <time.h>
+          sed -i '/#include <time.h>/a jint ffmpeg_jni_OnLoad(JavaVM *vm, void *reserved);\njint opus_jni_OnLoad(JavaVM *vm, void *reserved);\njint vpx_jni_OnLoad(JavaVM *vm, void *reserved);' app/jni/jni.c
+          # Fix calls to use 'reserved' instead of 'env' to match the patched function signatures
+          sed -i 's/ffmpeg_jni_OnLoad(vm, env)/ffmpeg_jni_OnLoad(vm, reserved)/g' app/jni/jni.c
+          sed -i 's/opus_jni_OnLoad(vm, env)/opus_jni_OnLoad(vm, reserved)/g' app/jni/jni.c
+          sed -i 's/vpx_jni_OnLoad(vm, env)/vpx_jni_OnLoad(vm, reserved)/g' app/jni/jni.c
 
       - name: Prepare Native Libraries
         env:
