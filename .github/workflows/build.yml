@@ -2,7 +2,7 @@ name: Build Telegram X Custom
 
 on:
   push:
-    branches: [ master, main ]
+    branches: [ master, main, custom-build ]
   workflow_dispatch:
 
 jobs:
@@ -27,6 +27,11 @@ jobs:
         with:
           ndk-version: r23b
 
+      - name: Install Build Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y yasm nasm make
+
       - name: Setup local.properties
         run: |
           echo "sdk.dir=$ANDROID_SDK_ROOT" > local.properties
@@ -36,6 +41,21 @@ jobs:
           echo "app.name=Telegram X Custom" >> local.properties
           echo "app.experimental=true" >> local.properties
           echo "app.disable_signing=true" >> local.properties
+
+      - name: Prepare Native Libraries
+        run: |
+          export ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT
+          export FLAVORS="latest"
+          export IGNORE_SDK=true
+          source scripts/set-env.sh
+          
+          # Patch opus and others
+          bash scripts/private/patch-opus-impl.sh
+          bash scripts/private/patch-androidx-media-impl.sh
+          
+          # Build vpx and ffmpeg
+          bash scripts/private/build-vpx-impl.sh
+          bash scripts/private/build-ffmpeg-impl.sh
 
       - name: Build arm64 Release APK
         run: |
