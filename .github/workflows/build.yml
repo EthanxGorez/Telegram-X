@@ -31,7 +31,7 @@ jobs:
       - name: Install NDK
         uses: nttld/setup-ndk@v1
         with:
-          ndk-version: 23.2.8568313
+          ndk-version: r23b
 
       - name: Install Build Dependencies
         run: |
@@ -72,9 +72,9 @@ jobs:
           export ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT
           export FLAVORS="latest"
           
-          # Manually set NDK versions from version.properties
-          export ANDROID_NDK_VERSION_PRIMARY="23.2.8568313"
-          export ANDROID_NDK_VERSION_LEGACY="23.2.8568313"
+          # Manually set NDK versions (r23b is 23.1.7779620)
+          export ANDROID_NDK_VERSION_PRIMARY="23.1.7779620"
+          export ANDROID_NDK_VERSION_LEGACY="23.1.7779620"
           
           # Ensure NDK root is correctly pointed
           mkdir -p $ANDROID_SDK_ROOT/ndk
