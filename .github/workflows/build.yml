@@ -64,20 +64,14 @@ jobs:
           
           # 2. Fix jni.c (Remove missing include, add declarations, and fix calls)
           sed -i 's/#include <androidx-media\/jni.h>//g' app/jni/jni.c
-          # Add declarations after <time.h>
           sed -i '/#include <time.h>/a jint ffmpeg_jni_OnLoad(JavaVM *vm, void *reserved);\njint opus_jni_OnLoad(JavaVM *vm, void *reserved);\njint vpx_jni_OnLoad(JavaVM *vm, void *reserved);' app/jni/jni.c
-          # Fix calls to use 'reserved' instead of 'env' to match the patched function signatures
           sed -i 's/ffmpeg_jni_OnLoad(vm, env)/ffmpeg_jni_OnLoad(vm, reserved)/g' app/jni/jni.c
           sed -i 's/opus_jni_OnLoad(vm, env)/opus_jni_OnLoad(vm, reserved)/g' app/jni/jni.c
           sed -i 's/vpx_jni_OnLoad(vm, env)/vpx_jni_OnLoad(vm, reserved)/g' app/jni/jni.c
           
           # 3. Patch FFmpeg build script to fix linker error (undefined symbol ff_av1_framerate)
-          # We enable a comprehensive set of decoders and specifically enable av1 to ensure all symbols are present
-          sed -i '/--enable-decoder=aac \\/a \  --enable-decoder=av1 \\\n  --enable-decoder=hevc \\\n  --enable-decoder=vp8 \\\n  --enable-decoder=vp9 \\' scripts/private/build-ffmpeg-impl.sh
-          
-          # 4. Critical Linker Fix: Manually add av1_parse.c to the build to provide ff_av1_framerate
-          # Since the linker is missing ff_av1_framerate, we'll add the source file that provides it to the tgxjni target
-          sed -i '/bridge.cpp/a \  "${THIRDPARTY_DIR}/ffmpeg/libavcodec/av1_parse.c"' app/jni/CMakeLists.txt
+          # We enable a comprehensive set of decoders and specifically enable av1 parser to ensure all symbols are present
+          sed -i '/--enable-decoder=aac \\/a \  --enable-decoder=av1 \\\n  --enable-decoder=hevc \\\n  --enable-decoder=vp8 \\\n  --enable-decoder=vp9 \\\n  --enable-parser=av1 \\' scripts/private/build-ffmpeg-impl.sh
 
       - name: Prepare Native Libraries
         env:
