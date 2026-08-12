@@ -66,8 +66,8 @@ function build_one {
   --enable-small \
   --cross-prefix="$CROSS_PREFIX"- \
   --sysroot="$SYSROOT" \
-  --extra-cflags="-ffunction-sections -fdata-sections -fvisibility=hidden -fvisibility-inlines-hidden -flto=full -fno-strict-aliasing -fno-fast-math -ftree-vectorize -funroll-loops -w -O2 -DCONFIG_LINUX_PERF=0 $OPTIMIZE_CFLAGS -I$LIBVPX_INCLUDE_DIR -fPIC" \
-  --extra-ldflags="-L$LIBVPX_LIB_DIR $EXTRA_LDFLAGS -lvpx -fPIC -flto=full" \
+  --extra-cflags="-ffunction-sections -fdata-sections -fvisibility=hidden -fvisibility-inlines-hidden -fno-strict-aliasing -fno-fast-math -ftree-vectorize -funroll-loops -w -O2 -DCONFIG_LINUX_PERF=0 $OPTIMIZE_CFLAGS -I$LIBVPX_INCLUDE_DIR -fPIC" \
+  --extra-ldflags="-L$LIBVPX_LIB_DIR $EXTRA_LDFLAGS -lvpx -fPIC" \
   --extra-libs="$EXTRA_LIBS" \
   \
   --enable-version3 \
@@ -260,13 +260,12 @@ configure_and_build() {
   build_one
 }
 
-for ABI in arm64-v8a x86_64 armeabi-v7a x86 ; do
-  for FLAVOR in $FLAVORS; do
-    if [[ "$FLAVOR" != "legacy" || $ABI == "armeabi-v7a" || $ABI == "x86" ]]; then
-      echo -e "${STYLE_INFO}- ffmpeg build start: ${ABI} ${FLAVOR}${STYLE_END}"
-      configure_and_build "$FLAVOR" "$ABI"
-      echo -e "${STYLE_INFO}- ffmpeg build finish: ${ABI} ${FLAVOR}${STYLE_END}"
-    fi
+# Fast Mode: only the requested arm64-v8a/latest release dependency is required.
+for ABI in arm64-v8a ; do
+  for FLAVOR in latest; do
+    echo -e "${STYLE_INFO}- ffmpeg build start: ${ABI} ${FLAVOR}${STYLE_END}"
+    configure_and_build "$FLAVOR" "$ABI"
+    echo -e "${STYLE_INFO}- ffmpeg build finish: ${ABI} ${FLAVOR}${STYLE_END}"
   done
 done
 

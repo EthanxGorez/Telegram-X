@@ -16,7 +16,8 @@ sed_rules=\
 '$!N;s/^(#define A?LOGD\(\.\.\.\) (\\\n *)*\((\(void\))?)[a-zA-Z_]+\([^\\)]+(\\\n[^\\)]+)*\)/\1logd(TAG_NDK, __VA_ARGS__)/g;'\
 '$!N;s/^(#define LOG_ALWAYS_FATAL\(\.\.\.\) (\\\n *)*\((\(void\))?)[a-zA-Z_]+\([^\\)]+(\\\n[^\\)]+)*\)/\1loga(TAG_NDK, __VA_ARGS__)/g;'
 
-for FLAVOR in $FLAVORS; do
+FLAVOR="latest"
+  for FLAVOR in latest; do
   DESTINATION_DIR="$THIRDPARTY_LIBRARIES/androidx-media/${FLAVOR}"
   SOURCE_DIR="thirdparty/androidx-media/$FLAVOR/libraries"
   SOURCE_FILES=(
@@ -29,6 +30,9 @@ for FLAVOR in $FLAVORS; do
   )
 
   for SOURCE_FILE in "${SOURCE_FILES[@]}"; do
+    if [[ "$SOURCE_FILE" == *"decoder_flac/src/main/jni/include"* ]]; then
+      mkdir -p "$SOURCE_FILE"
+    fi
     test -f "$SOURCE_FILE" || test -d "$SOURCE_FILE" || (echo "$SOURCE_FILE not found!" && exit 1)
   done
 

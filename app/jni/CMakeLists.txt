@@ -19,7 +19,7 @@ set(TGX_ROOT_DIR "${PROJECT_SOURCE_DIR}/../..")
 set(TDLIB_DIR "${TGX_ROOT_DIR}/tdlib")
 set(UTILS_DIR "${THIRDPARTY_DIR}/jni-utils")
 
-set(ENABLE_TGVOIP yes)
+set(ENABLE_TGVOIP no)
 
 # Using webp only if building for 32-bit platform
 #if (${ANDROID_ABI} STREQUAL "armeabi-v7a" OR ${ANDROID_ABI} STREQUAL "x86")
@@ -81,7 +81,6 @@ add_compile_options(
   "$<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:-fdata-sections>"
   "$<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:-fvisibility=hidden>"
   "$<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:-fvisibility-inlines-hidden>"
-  "$<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:-flto=full>"
 )
 
 # == Libraries ==
@@ -183,17 +182,20 @@ add_library(${NATIVE_LIB} SHARED
   gif.cpp
   views.c
 
-  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/opus_jni.cc"
-  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/flac_jni.cc"
-  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/flac_parser.cc"
-  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/ffmpeg_jni.cc"
-  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/vpx_jni.cc"
+  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/libraries/decoder_opus/src/main/jni/opus_jni.cc"
+  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/libraries/decoder_flac/src/main/jni/flac_jni.cc"
+  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/libraries/decoder_flac/src/main/jni/flac_parser.cc"
+  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/libraries/decoder_ffmpeg/src/main/jni/ffmpeg_jni.cc"
+  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/libraries/decoder_vp9/src/main/jni/vpx_jni.cc"
 
   bridge.cpp
 )
 target_include_directories(${NATIVE_LIB} PRIVATE
   "${THIRDPARTY_DIR}/telegram_intro"
-  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}"
+  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/libraries/decoder_opus/src/main/jni"
+  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/libraries/decoder_flac/src/main/jni"
+  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/libraries/decoder_ffmpeg/src/main/jni"
+  "${THIRDPARTY_DIR}/androidx-media/${TGX_FLAVOR}/libraries/decoder_vp9/src/main/jni"
 
   "${THIRDPARTY_DIR}"
   .
@@ -258,7 +260,6 @@ target_link_libraries(${NATIVE_LIB}
 target_link_options(${NATIVE_LIB} PRIVATE
   "$<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:-Wl,--gc-sections,--icf=safe>"
   "$<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:-Wl,--exclude-libs,ALL>"
-  "$<$<CONFIG:Release,RelWithDebInfo,MinSizeRel>:-flto=full>"
 )
 
 if (${ANDROID_ABI} STREQUAL "arm64-v8a" OR ${ANDROID_ABI} STREQUAL "x86_64")
