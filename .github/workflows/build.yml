@@ -64,12 +64,14 @@ jobs:
           
           # 2. Fix jni.c (Remove missing include, add declarations, and fix calls)
           sed -i 's/#include <androidx-media\/jni.h>//g' app/jni/jni.c
-          # Add declarations after <time.h>
           sed -i '/#include <time.h>/a jint ffmpeg_jni_OnLoad(JavaVM *vm, void *reserved);\njint opus_jni_OnLoad(JavaVM *vm, void *reserved);\njint vpx_jni_OnLoad(JavaVM *vm, void *reserved);' app/jni/jni.c
-          # Fix calls to use 'reserved' instead of 'env' to match the patched function signatures
           sed -i 's/ffmpeg_jni_OnLoad(vm, env)/ffmpeg_jni_OnLoad(vm, reserved)/g' app/jni/jni.c
           sed -i 's/opus_jni_OnLoad(vm, env)/opus_jni_OnLoad(vm, reserved)/g' app/jni/jni.c
           sed -i 's/vpx_jni_OnLoad(vm, env)/vpx_jni_OnLoad(vm, reserved)/g' app/jni/jni.c
+          
+          # 3. Patch FFmpeg build script to fix undefined symbol error (ff_av1_framerate)
+          # We add --enable-decoder=av1 to the ffmpeg configure flags to ensure all av1 symbols are present
+          sed -i '/--enable-decoder=aac \\/a \  --enable-decoder=av1 \\' scripts/private/build-ffmpeg-impl.sh
 
       - name: Prepare Native Libraries
         env:
