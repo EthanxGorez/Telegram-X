@@ -55,9 +55,21 @@ jobs:
           # Mock tput to avoid script failure
           sudo ln -sf /bin/true /usr/bin/tput || true
           
+          # Set required environment variables for scripts
           export ANDROID_SDK_ROOT=$ANDROID_SDK_ROOT
           export FLAVORS="latest"
-          export IGNORE_SDK=true
+          
+          # Manually set NDK versions from version.properties to avoid reading issues
+          export ANDROID_NDK_VERSION_PRIMARY="23.2.8568313"
+          export ANDROID_NDK_VERSION_LEGACY="23.2.8568313"
+          
+          # Ensure NDK root is correctly pointed
+          # nttld/setup-ndk sets ANDROID_NDK_ROOT, but we need it to match the structure expected by scripts
+          # The scripts expect $ANDROID_SDK_ROOT/ndk/$ANDROID_NDK_VERSION_PRIMARY
+          mkdir -p $ANDROID_SDK_ROOT/ndk
+          if [ ! -d "$ANDROID_SDK_ROOT/ndk/$ANDROID_NDK_VERSION_PRIMARY" ]; then
+            ln -s $ANDROID_NDK_ROOT $ANDROID_SDK_ROOT/ndk/$ANDROID_NDK_VERSION_PRIMARY
+          fi
           
           source scripts/set-env.sh
           
