@@ -70,8 +70,8 @@ jobs:
           sed -i 's/vpx_jni_OnLoad(vm, env)/vpx_jni_OnLoad(vm, reserved)/g' app/jni/jni.c
           
           # 3. Patch FFmpeg build script to fix undefined symbol error (ff_av1_framerate)
-          # We add --enable-decoder=av1 to the ffmpeg configure flags to ensure all av1 symbols are present
-          sed -i '/--enable-decoder=aac \\/a \  --enable-decoder=av1 \\' scripts/private/build-ffmpeg-impl.sh
+          # We enable a comprehensive set of decoders to avoid missing internal symbols like ff_av1_framerate
+          sed -i '/--enable-decoder=aac \\/a \  --enable-decoder=av1 \\\n  --enable-decoder=hevc \\\n  --enable-decoder=vp8 \\\n  --enable-decoder=vp9 \\' scripts/private/build-ffmpeg-impl.sh
 
       - name: Prepare Native Libraries
         env:
