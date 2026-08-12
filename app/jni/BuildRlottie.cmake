@@ -54,7 +54,7 @@ target_include_directories(rlottie PUBLIC
 
 if (${ANDROID_ABI} STREQUAL "armeabi-v7a")
   target_compile_options(rlottie PUBLIC
-    -fno-integrated-as
+
   )
   target_compile_definitions(rlottie PRIVATE
     USE_ARM_NEON
@@ -63,7 +63,7 @@ if (${ANDROID_ABI} STREQUAL "armeabi-v7a")
     "${RLOTTIE_DIR}/src/vector/pixman/pixman-arm-neon-asm.S")
 elseif(${ANDROID_ABI} STREQUAL "arm64-v8a")
   target_compile_options(rlottie PUBLIC
-    -fno-integrated-as
+
   )
   target_compile_definitions(rlottie PRIVATE
     USE_ARM_NEON
